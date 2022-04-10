@@ -2,3 +2,5 @@
 /logs
 .vscode/
 dbn_admin.session.sql
+bot/__pycache__/
+dbn.session.sql
