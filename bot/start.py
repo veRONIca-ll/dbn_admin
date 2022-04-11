@@ -1,19 +1,12 @@
-
-import telebot
 import re
 import os
-from telegram import ReplyKeyboardMarkup, Update, ParseMode, KeyboardButton
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, ParseMode, KeyboardButton
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, RegexHandler
-from __init__ import login
 from db_operations import find_user, get_departments, add_user
-from helpers import send_list
+from utils.helpers import send_list, split_into_fullname
 
-bot = login()
-if bot == 'Telegram Error':
-    print('Failed to connect')
 
 def start(update: Update, context: CallbackContext):
-    print(update.effective_chat.id)
     user = find_user(update.effective_chat.id)
     if user == None:
         button = [[KeyboardButton('Регистрация')]]
@@ -21,26 +14,33 @@ def start(update: Update, context: CallbackContext):
         context.bot.send_message(update.effective_chat.id, 'Для того, чтобы я знал, как к Вам в дальнейшем обращаться, нажмите кнопку "Регистрация"',
             reply_markup=ReplyKeyboardMarkup(button))
     else:
-        bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['first_name']} {user['middle_name']}.")
+        context.bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['first_name']} {user['middle_name']}.")
 
 
 def message_handler(update: Update, context: CallbackContext):
     if update.message.text == 'Регистрация':
         departments = get_departments()
-        if departments:
+        if departments != ():
             context.bot.send_message(update.effective_chat.id, 'Давайте знакомиться! Напишите свое ФИО, чтобы я знал, как к Вам обращаться, а также укажите номер отдела из предоставленного ниже списка.')
             context.bot.send_message(update.effective_chat.id, send_list(departments))
             context.bot.send_message(update.effective_chat.id, 'Пример ответа: Иванов Иван Иванович 3')
+        else:
+            context.bot.send_message(update.effective_chat.id, 'В данный момент список отделов обновляется, пожалуйста, пропутсите шаг регистрации.')
     if re.match('^[А-Я][а-я]*([-][А-Я][а-я]*)?\s[А-Я][а-я]*\s[А-Я][а-я]*\s\d$', update.message.text):
-        register(update.effective_chat.id, update.message.text)
+        data = split_into_fullname(update.effective_chat.id, update.message.text)
+        if add_user(data):
+            context.bot.send_message(
+                update.effective_chat.id,
+                f"Приятно познакомиться, {data['first_name']} {data['middle_name']}!",
+                reply_markup = ReplyKeyboardMarkup([[KeyboardButton('Как пользоваться?')]]))
+        else:
+            context.bot.send_message(update.effective_chat.id, f"Возникла небольшая проблема, давайте познакомимся в другой раз!")
+    if update.message.text == 'Как пользоваться?':
+        help(update, context)
 
-# def help():
-
-
-def register(id, message):
-    # insert into the table and return FIO
-    data = message.split()
-    add_user((id, data[1], data[0], data[2], data[3]))
+def help(update: Update, context: CallbackContext):
+    # TODO: output for help info 
+    context.bot.send_message(update.effective_chat.id, f"Здесь будет позже размещена инструкция по использованию бота, ждите!")
 
 
 
@@ -53,8 +53,8 @@ def main() -> None:
 
     # Register commands
     dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('help', start))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
-    # dispatcher.add_handler(RegexHandler('^[А-Я][а-я]*([-][А-Я][а-я]*)?\s[А-Я][а-я]*\s[А-Я][а-я]*\s\d$', register))
     # Start the Bot
     updater.start_polling()
 
