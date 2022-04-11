@@ -70,9 +70,8 @@ def create_tables(params) -> None:
         conn = psycopg2.connect("host={host} user={user} password={password}".format(**params))
         cur = conn.cursor()
         # create table one by one
-        print(cur.execute('SELECT * FROM users').fetchone())
-        # for command in commands:
-        #     cur.execute(command)
+        for command in commands:
+            cur.execute(command)
         # close communication with the PostgreSQL database server
         cur.close()
         # commit the changes
