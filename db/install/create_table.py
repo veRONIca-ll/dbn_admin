@@ -14,7 +14,7 @@ def create_tables(params) -> None:
         """,
         """
         CREATE TABLE users (
-            user_id INT GENERATED ALWAYS AS IDENTITY,
+            user_id INT,
             first_name VARCHAR(255) NOT NULL,
             second_name VARCHAR(255) NOT NULL,
             middle_name VARCHAR(255) NULL,
@@ -67,7 +67,7 @@ def create_tables(params) -> None:
         # read the connection parameters
         # connect to the PostgreSQL server
         # TODO: add logging of starting connection
-        conn = psycopg2.connect("host={host} database={database} user={user} password={password}".format(**params))
+        conn = psycopg2.connect("host={host} user={user} password={password}".format(**params))
         cur = conn.cursor()
         # create table one by one
         for command in commands:
@@ -88,7 +88,6 @@ def create_tables(params) -> None:
 if __name__ == '__main__':
     conn_params = {
         'host': os.getenv('DB_HOST'),
-        'database': os.getenv('DB_NAME'),
         'user': os.getenv('DB_USER'),
         'password': os.getenv('DB_PASSWORD'),
     }
