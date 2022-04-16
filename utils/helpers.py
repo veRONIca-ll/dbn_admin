@@ -12,5 +12,4 @@ def split_into_fullname(id: int, message: str) -> dict:
         'first_name': data[1],
         'second_name': data[0],
         'middle_name': data[2],
-        'department_id': data[3],
     }
