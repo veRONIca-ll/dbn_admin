@@ -14,24 +14,17 @@ def create_tables(params) -> None:
         """,
         """
         CREATE TABLE users (
-            user_id INT,
-            first_name VARCHAR(255) NOT NULL,
-            second_name VARCHAR(255) NOT NULL,
+            user_id INT PRIMARY KEY,
+            nick VARCHAR(255) NOT NULL,
+            first_name VARCHAR(255) NULL,
+            second_name VARCHAR(255) NULL,
             middle_name VARCHAR(255) NULL,
-            department_id INT NOT NULL,
-            PRIMARY KEY (user_id),
+            department_id INT NULL,
+            admin BOOLEAN,
             CONSTRAINT fk_departments
                 FOREIGN KEY(department_id) 
                     REFERENCES departments(department_id)
                         ON UPDATE CASCADE ON DELETE CASCADE
-        )
-        """,
-        """
-        CREATE TABLE staff (
-            staff_id INTEGER PRIMARY KEY,
-            first_name VARCHAR(255) NOT NULL,
-            second_name VARCHAR(255) NOT NULL,
-            middle_name VARCHAR(255) NULL
         )
         """,
         """
@@ -49,15 +42,11 @@ def create_tables(params) -> None:
             status BOOLEAN NOT NULL,
             category_id INTEGER NULL,
             user_id INTEGER NOT NULL,
-            staff_id INTEGER NULL,
             FOREIGN KEY (category_id)
                 REFERENCES categories (category_id)
                 ON UPDATE CASCADE ON DELETE CASCADE,
             FOREIGN KEY (user_id)
                 REFERENCES users (user_id)
-                ON UPDATE CASCADE ON DELETE CASCADE,
-            FOREIGN KEY (staff_id)
-                REFERENCES staff (staff_id)
                 ON UPDATE CASCADE ON DELETE CASCADE
         )
         """
