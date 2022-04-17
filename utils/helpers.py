@@ -5,11 +5,12 @@ def send_list(data) -> str:
 
     return out
 
-def split_into_fullname(id: int, message: str) -> dict:
+def split_into_fullname(id: int, message: str, is_admin: bool) -> dict:
     data = message.split()
     return {
         'user_id': id,
         'first_name': data[1],
         'second_name': data[0],
         'middle_name': data[2],
+        'admin': is_admin,
     }

@@ -56,14 +56,29 @@ def add_user(id: int, nickname: str) -> bool:
         print(error)
         return False
 
-def register_user(data: dict) -> bool:
+def add_fio(data: dict) -> bool:
     global connection_param
     try:
         # TODO: add logging of starting connection
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute("""UPDATE users SET first_name = %s, second_name = %s, middle_name = %s \
-            WHERE user_id=%s""", (data['first_name'], data['second_name'], data['middle_name'], data['user_id']))
+        cursor.execute("""UPDATE users SET first_name = %s, second_name = %s, middle_name = %s, admin = %s \
+            WHERE user_id=%s""", (data['first_name'], data['second_name'], data['middle_name'], data['admin'], data['user_id']))
+        conn.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError) as error:
+        # TODO: add logging of an error while connection
+        print(error)
+        return False
+
+def add_department(user_id: int, dep: int) -> bool:
+    global connection_param
+    try:
+        # TODO: add logging of starting connection
+        conn = psycopg2.connect(connection_param)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute("""UPDATE users SET  department_id=%s \
+            WHERE user_id=%s""", (dep, user_id))
         conn.commit()
         return True
     except (Exception, psycopg2.DatabaseError) as error:

@@ -3,4 +3,6 @@
 .vscode/
 dbn_admin.session.sql
 bot/__pycache__/
+db/__pycache__/
+utils/__pycache__/
 dbn.session.sql
