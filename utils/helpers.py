@@ -17,12 +17,6 @@ def split_into_fullname(id: int, message: str, is_admin: bool) -> dict:
         'admin': is_admin,
     }
 
-# def _pretty_steps(steps) -> list:
-#     steps_text = ''
-#     for i in re.split('\n', steps):
-#         steps_text += i.strip() + '\n'
-#     return steps_text
-
 def pretty_output(response) -> str:
     text = ''
     for res in response:

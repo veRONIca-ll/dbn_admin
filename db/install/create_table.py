@@ -1,6 +1,5 @@
 import psycopg2
 import os
-from dotenv import load_dotenv
 
 def create_tables(params) -> bool:
     """create tables in the PostgreSQL database"""
