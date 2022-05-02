@@ -6,3 +6,6 @@ bot/__pycache__/
 db/__pycache__/
 utils/__pycache__/
 dbn.session.sql
+.postgres_postgres2
+/elasticsearch_integration/__pycache__
+main.py

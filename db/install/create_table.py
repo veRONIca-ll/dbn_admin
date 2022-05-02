@@ -1,8 +1,7 @@
 import psycopg2
 import os
-from dotenv import load_dotenv
 
-def create_tables(params) -> None:
+def create_tables(params) -> bool:
     """create tables in the PostgreSQL database"""
     commands = (
         """
@@ -29,13 +28,14 @@ def create_tables(params) -> None:
         """,
         """
         CREATE TABLE categories (
-            category_id INTEGER PRIMARY KEY,
-            name VARCHAR(255) NOT NULL
+            category_id INT GENERATED ALWAYS AS IDENTITY,
+            name VARCHAR(255) NOT NULL,
+            PRIMARY KEY (category_id)
         )
         """,
         """
         CREATE TABLE tasks (
-            task_id INTEGER PRIMARY KEY,
+            task_id INT GENERATED ALWAYS AS IDENTITY,
             title VARCHAR(100) NOT NULL,
             description VARCHAR(255) NULL,
             steps TEXT NULL,
@@ -47,7 +47,8 @@ def create_tables(params) -> None:
                 ON UPDATE CASCADE ON DELETE CASCADE,
             FOREIGN KEY (user_id)
                 REFERENCES users (user_id)
-                ON UPDATE CASCADE ON DELETE CASCADE
+                ON UPDATE CASCADE ON DELETE CASCADE,
+            PRIMARY KEY (task_id)
         )
         """
         )
@@ -65,19 +66,14 @@ def create_tables(params) -> None:
         cur.close()
         # commit the changes
         conn.commit()
+        return True
     except (Exception, psycopg2.DatabaseError) as error:
         # TODO: add logging of an error while connection
         print(error)
+        return False
     finally:
         if conn is not None:
             # TODO: add logging about closing
             conn.close()
+        
 
-
-if __name__ == '__main__':
-    conn_params = {
-        'host': os.getenv('DB_HOST'),
-        'user': os.getenv('DB_USER'),
-        'password': os.getenv('DB_PASSWORD'),
-    }
-    create_tables(conn_params)

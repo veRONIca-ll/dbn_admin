@@ -1,13 +1,20 @@
+
+from operator import concat
 import os
 import sys
 # sys.path is a list of absolute path strings
 sys.path.append(os.getenv('PATH_TO_APP_FOLDER'))
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, ParseMode, KeyboardButton
-from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, ConversationHandler
-from db.db_operations import find_user, get_departments, add_user, add_fio, add_department
-from utils.helpers import send_list, split_into_fullname
-STEP_FIO, SAVE_FIO, STEP_DEPS, SAVE_DEPS, FINISH = range(5)
 
+from telegram import InlineKeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, KeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
+from db.db_operations import find_user, get_departments, add_user, add_fio, add_department, get_categories
+from utils.helpers import send_list, split_into_fullname, pretty_output
+from elasticsearch_integration.search import search_es
+from telegram_bot_pagination import InlineKeyboardPaginator
+
+STEP_FIO, SAVE_FIO, STEP_DEPS, SAVE_DEPS, FINISH = range(5)
+AKS_CATEGORY, ASK_DESCRIPTION, SEARCH_SOLUTIONS, ASK_FOR_HELP = range(4)
+user_info = {}
 def start(update: Update, context: CallbackContext):
     ''' Приветствие пользователя или запрос на регистрацию '''
     user = find_user(update.effective_chat.id)
@@ -22,10 +29,13 @@ def start(update: Update, context: CallbackContext):
         context.bot.send_message(update.effective_chat.id, 'Для того, чтобы я знал, как к Вам в дальнейшем обращаться, нажмите кнопку "Регистрация пользователя", если вы не являетесь экспетром ИТ-отдела, иначе нажмите "Регистарция эксперта ИТ-отдела',
             reply_markup=ReplyKeyboardMarkup(button))
     else:
+        button = [[KeyboardButton('Оставить заявку')]]
         if user['first_name'] != None and user['second_name'] != None:
-            context.bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['first_name']} {user['middle_name']}.")
+            context.bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['first_name']} {user['middle_name']}.",
+                reply_markup = ReplyKeyboardMarkup(button))
         else:
-            context.bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['nick']}.")
+            context.bot.send_message(update.effective_chat.id, f"Здравствуйте, {user['nick']}.",
+                reply_markup = ReplyKeyboardMarkup(button))
 
 
 def message_handler(update: Update, context: CallbackContext):    
@@ -135,15 +145,74 @@ def skip_department(update:Update, context: CallbackContext):
     ''' Пропуск шага выбора направления отделений для пользователя '''
     context.bot.send_message(update.effective_chat.id,
             f"Если Вы передумаете, у Вас будет возможность заполнить этот шаг!",
-            reply_markup=ReplyKeyboardMarkup([[KeyboardButton('Инструкция пользования')]]))
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton('Инструкция пользования')], [KeyboardButton('Оставить заявку')]]))
+    return ConversationHandler.END
 
-def incorrect_name_input(update:Update, context: CallbackContext):
+def incorrect_name_input(update: Update, context: CallbackContext):
     ''' Сообщение о неправильном вводе ФИО '''
-    context.bot.send_message('Пожалуйста, введите свое ФИО так, как указано в примере.')
+    context.bot.send_message(update.effective_chat.id, 'Пожалуйста, введите свое ФИО так, как указано в примере.')
 
 def incorrect_department_input(update:Update, context: CallbackContext):
     ''' Сообщение о неправильном вводе номера направления '''
-    context.bot.send_message('Пожалуйста, введите номер своего направления отделения так, как указано в примере.')
+    context.bot.send_message(update.effective_chat.id, 'Пожалуйста, введите номер своего направления отделения так, как указано в примере.')
+
+def get_category_problem(update: Update, context: CallbackContext):
+    ''' Уточнение категории, к которой относится заявка '''
+    categories = get_categories()
+    print(type(categories))
+    keyboard = []
+
+    for value in categories.items():
+        print(value)
+        keyboard.append([InlineKeyboardButton(text=value[1], callback_data=value[0])])
+    
+    context.bot.send_message(update.effective_chat.id, 'Выберите категорию Вашей проблемы:', reply_markup=InlineKeyboardMarkup(keyboard))
+    return ASK_DESCRIPTION
+
+
+
+def get_description_problem(update: Update, context: CallbackContext):
+    print('in')
+    global user_info
+    query = update.callback_query
+    print(query.data)
+    user_info[update.effective_chat.id] = query.data
+    context.bot.send_message(update.effective_chat.id, 'Кратко опишите свою проблему')
+    context.bot.send_message(update.effective_chat.id, 'Например, не включается принтер')
+    return SEARCH_SOLUTIONS
+
+def find_solution(update: Update, context: CallbackContext):
+    global user_info
+    category_id = user_info[update.effective_chat.id]
+    print(category_id)
+    context.bot.send_message(update.effective_chat.id, 'Поиск решения данной проблемы начался...')
+    # print(update.message.text)
+    
+    response = search_es(category_id, update.message.text)
+    if response == []:
+        context.bot.send_message(update.effective_chat.id, 'Ничего не найдено по Вашему запросу')
+        # TODO : create task in Jira + send messages to admins
+        unsuccess_reply(update, context)
+    else:
+        context.bot.send_message(update.effective_chat.id, 'Вот, что удалось найти по Вашему запросу:')
+        context.bot.send_message(update.effective_chat.id, pretty_output(response))
+        context.bot.send_message(update.effective_chat.id, 'Вам помогли результаты поиска?',
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton('Да, помогли')], [KeyboardButton('Нет, не помогли')]])
+        )
+
+def success_reply(update: Update, context: CallbackContext):
+    print('i am in')
+    context.bot.send_message(update.effective_chat.id,
+        'Рады были помочь! Если возникнут проблемы, оставляйте заявку снова. Хорошего дня!',
+        reply_markup=ReplyKeyboardMarkup([[KeyboardButton('/start')]]))
+    return ConversationHandler.END
+
+def unsuccess_reply(update: Update, context: CallbackContext):
+    # TODO : create task in Jira + send messages to admins
+    print(update.message.text)
+    context.bot.send_message(update.effective_chat.id,
+        'Сейчас создается заявка, которую будут решать эксперты отдела')
+    return ConversationHandler.END
 
 def main() -> None:
     """Run the bot."""
@@ -183,9 +252,22 @@ def main() -> None:
                     MessageHandler(Filters.text, incorrect_name_input),
                 ],
             SAVE_FIO: [MessageHandler(Filters.regex('^[А-Я][а-я]*([-][А-Я][а-я]*)?\s[А-Я][а-я]*\s[А-Я][а-я]*$'), set_admin_fio)],
+        }
+    ))
+    dispatcher.add_handler(ConversationHandler(
+        entry_points=[MessageHandler(Filters.regex('Оставить заявку'), get_category_problem)],
+        fallbacks=[],
+        states={
+            ASK_DESCRIPTION: [CallbackQueryHandler(get_description_problem)],
+            SEARCH_SOLUTIONS: [
+                    MessageHandler(Filters.regex('Да, помогли'), success_reply),
+                    MessageHandler(Filters.regex('Нет, не помогли'), unsuccess_reply),
+                    MessageHandler(Filters.text, find_solution),
+                ]
         },
     ))
-    dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
+
+    # dispatcher.add_handler(CallbackQueryHandler(Filters.text, message_handler))
     
     # Start the Bot
     updater.start_polling()
