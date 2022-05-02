@@ -40,14 +40,15 @@ def collect_departments() -> list:
         if raw_department:
             raw_title = raw_department.find_all('strong')
             title = ''
-            if raw_title != []:
-                for raw_ in raw_title:
-                    title += remove_tags(str(raw_))
-                departments.append(title)
+            if raw_title == []:
+                continue
+            for raw_ in raw_title:
+                title += remove_tags(str(raw_))
+            departments.append(title)
 
     return departments
 
-def collect_main_deps() -> list:
+def _collect_main_deps() -> list:
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, "html.parser")
     main_deps = []
@@ -64,19 +65,18 @@ def collect_main_deps() -> list:
         if strong == 3:
             break
         if raw_department and 'Заместитель' in raw_department.text:
-            print(get_between_brakets(raw_department.text))
             main_deps.append(get_between_brakets(raw_department.text))
     
     return main_deps
 
 
-def insert_departments(deps: list) -> bool:
+def insert_departments() -> bool:
     global connection_param
     try:
         # TODO: add logging of starting connection
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        for dep in deps:
+        for dep in _collect_main_deps():
             to_ = f"INSERT INTO departments (name) \
                 VALUES ('{dep}')"
             cursor.execute(to_)

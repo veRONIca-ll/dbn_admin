@@ -2,10 +2,8 @@
 /logs
 .vscode/
 dbn_admin.session.sql
-bot/__pycache__/
-db/__pycache__/
-utils/__pycache__/
-dbn.session.sql
+*/__pycache__/
+*/*/__pycache__/
+*.sql
 .postgres_postgres2
-/elasticsearch_integration/__pycache__
 main.py
