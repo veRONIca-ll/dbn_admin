@@ -23,3 +23,4 @@
         python-dotenv 0.20.0: pip install python-dotenv
         pyTelegramBotAPI 4.4.0: pip install pyTelegramBotAPI
         psycopg2 2.9.3: pip install psycopg2
+        elasticsearch: pip install elasticsearch

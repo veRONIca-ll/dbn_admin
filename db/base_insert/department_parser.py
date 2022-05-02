@@ -15,7 +15,7 @@ connection_param = 'host={host} user={user} password={password}'.format(**params
 
 TAG_RE = re.compile(r'<[^>]+>')
 BETWEEN_RE = re.compile(r'\((.*?)\)')
-URL = 'http://naukograd-dubna.ru/mun/contacts'
+URL = os.getenv('SITE_URL')
 
 def remove_tags(text: str) -> str:
     ''' Remove all html-tags from text '''
@@ -69,7 +69,6 @@ def collect_main_deps() -> list:
     
     return main_deps
 
-# deps = collect_main_deps()
 
 def insert_departments(deps: list) -> bool:
     global connection_param
@@ -87,5 +86,6 @@ def insert_departments(deps: list) -> bool:
         # TODO: add logging of an error while connection
         print(error)
         return False
-
-# insert_departments(deps)
+    finally:
+        if conn is not None:
+            conn.close()
