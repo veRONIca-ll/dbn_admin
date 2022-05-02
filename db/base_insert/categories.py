@@ -12,18 +12,18 @@ params = {
 
 connection_param = 'host={host} user={user} password={password}'.format(**params)
 
-def parse_category():
+def _parse_category():
     file = pd.read_csv(os.getenv('PATH_TO_APP_FOLDER') + '/data/' + os.getenv('CATEGORIES_FILE'),
         header=None)
     return [v[0] for v in file.values]
 
-def insert_categories(categories: list) -> bool:
+def insert_categories() -> bool:
     global connection_param
     try:
         # TODO: add logging of starting connection
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor()
-        for category in categories:
+        for category in _parse_category():
             to_ = f"INSERT INTO categories (name) \
                 VALUES ('{category}')"
             cursor.execute(to_)

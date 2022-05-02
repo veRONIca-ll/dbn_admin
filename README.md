@@ -20,7 +20,10 @@
         Python: 3.6
     2) Необходимые библиотеки для работы
         os-sys 2.1.4: pip install os-sys
+        pandas: pip install pandas
         python-dotenv 0.20.0: pip install python-dotenv
         pyTelegramBotAPI 4.4.0: pip install pyTelegramBotAPI
         psycopg2 2.9.3: pip install psycopg2
         elasticsearch: pip install elasticsearch
+        trello: pip install py-trello
+

@@ -20,10 +20,12 @@ if __name__ == '__main__':
             Добавление в таблицу departments навправлений отделений,
             полученнных с сайта env.SITE_URL
         '''
-        insert_departments(collect_departments())
+        insert_departments()
 
         ''' 
             Добавление в таблицу categories категорий заявок,
             полученнных из файла data/categories.csv
         '''
-        insert_categories(parse_category())
+        insert_categories()
+
+        # TODO: база знаний по заявкам

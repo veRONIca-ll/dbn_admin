@@ -36,8 +36,8 @@ def create_tables(params) -> bool:
         """
         CREATE TABLE tasks (
             task_id INT GENERATED ALWAYS AS IDENTITY,
-            title VARCHAR(100) NOT NULL,
-            description VARCHAR(255) NULL,
+            card_id VARCHAR(100) NOT NULL,
+            description TEXT NULL,
             steps TEXT NULL,
             status BOOLEAN NOT NULL,
             category_id INTEGER NULL,
