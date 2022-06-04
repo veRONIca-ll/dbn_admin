@@ -1,5 +1,6 @@
 import psycopg2
 import os
+from utils.logger import info, err
 
 def create_tables(params) -> bool:
     """create tables in the PostgreSQL database"""
@@ -58,10 +59,12 @@ def create_tables(params) -> bool:
         cur = conn.cursor()
         for command in commands:
             cur.execute(command)
-        cur.close()
+
         conn.commit()
+        info('Успешно созданы таблицы')
         return True
     except (Exception, psycopg2.DatabaseError) as error:
+        err(f'Возникла ошибка при создании таблиц: {error}')
         return False
     finally:
         if conn is not None:
