@@ -4,6 +4,7 @@ sys.path.append(os.getenv('PATH_TO_APP_FOLDER'))
 
 from trello import TrelloClient
 from db.db_operations import get_user, get_department_name, add_task, get_unsolved_tasks, update_task
+from utils.logger import info, err
 
 def _connect_trello():
     ''' Подключение к Trello '''
@@ -12,9 +13,10 @@ def _connect_trello():
             api_key=os.getenv('TRELLO_API_KEY'),
             api_secret = os.getenv('TRELLO_API_SECRET')
         )
+        info('trello', 'Успешное подключение к Trello')
         return trello
     except Exception:
-        print('sad')
+        err('trello', 'Ошибка подключения к Trello')
         return None
 
 def _card_title(info: list) -> str:
@@ -51,9 +53,8 @@ def check_if_done(card_id: str):
     if trello is not None:
         try:
             card = trello.get_card(card_id)
-            print(card.name)
             if card is not None and card.list_id == os.getenv('DONE_LIST_ID') and card.description is not None:
                 return update_task(card_id, card.description)
         except Exception:
-            print('no such card')
+            err('trello', f'Нет такой карточки {card_id}')
             return ''

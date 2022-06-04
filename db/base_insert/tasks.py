@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import psycopg2
 import psycopg2.extras
-
+from utils.logger import info, debug, err
 params = {
         'host': os.getenv('DB_HOST'),
         'user': os.getenv('DB_USER'),
@@ -16,7 +16,9 @@ def _read_file():
 
 def insert_tasks() -> bool:
     global connection_param
+    conn = None
     try:
+        debug('db', 'Начало работы с БД по созданию таблицы с задачами')
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor()
         file = _read_file()
@@ -25,8 +27,12 @@ def insert_tasks() -> bool:
                 VALUES ('{file.description[i]}, {file.steps[i]}, {file.category_id[i]}, {True}')"
             cursor.execute(to_)
         conn.commit()
+
+        info('db', 'Успешно создана таблица с задачами')
+        debug('db', 'Конец работы с БД по созданию таблицы с задачами')
         return True
-    except (Exception, psycopg2.DatabaseError):
+    except (Exception, psycopg2.DatabaseError) as error:
+        err('db', f'Возникла ошибка при создании таблицы: {error}')
         return False
     finally:
         if conn is not None:

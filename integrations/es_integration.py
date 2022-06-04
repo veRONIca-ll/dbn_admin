@@ -1,8 +1,9 @@
 import os
 import sys
 from elasticsearch import Elasticsearch
-
 sys.path.append(os.getenv('PATH_TO_APP_FOLDER'))
+from utils.logger import info, err
+
 
 NEEDED_FIELDS = ['description', 'steps']
 
@@ -11,11 +12,9 @@ def _connect_elasticsearch(host, port) -> Elasticsearch:
     _es = None
     _es = Elasticsearch(f"http://{host}:{port}")
     if _es.ping():
-        # TODO : log success
-        print('Yay Connect')
+        info('es', 'Успешное подключение к es')
     else:
-        # TODO : log error
-        print('Awww it could not connect!')
+        err('es', 'Ошибка подключения к es')
     return _es
 
 def _create_query(id, msg) -> dict:
@@ -47,7 +46,6 @@ def search_es(category_id, msg) -> list:
     response = []
     if _es is not None:
         res = _es.search(index=os.getenv('E_INDEX'), query=_create_query(category_id, msg))
-        print(res)
         if res['hits']['total']['value'] != 0:
             response = _process_result(res['hits']['hits'])
     
