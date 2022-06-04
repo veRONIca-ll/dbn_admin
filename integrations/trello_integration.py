@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.getenv('PATH_TO_APP_FOLDER'))
 
 from trello import TrelloClient
-from db.db_operations import find_user, get_department_name, add_task, get_unsolved_tasks, update_task
+from db.db_operations import get_user, get_department_name, add_task, get_unsolved_tasks, update_task
 
 def _connect_trello():
     ''' Подключение к Trello '''
@@ -33,8 +33,8 @@ def create_card(user_id, category_id, msg) -> str:
     ''' Создание новой карточки-заявки '''
     trello = _connect_trello()
     if trello is not None:
-        name = _card_title(find_user(user_id)) + '\n--Заявка--\n' + msg
-        board = trello.get_board(_find_board_id(trello.list_boards()))
+        name = _card_title(get_user(user_id)) + '\n--Заявка--\n' + msg
+        board = trello.get_board(os.getenv('BOARD_ID'))
         todo_list =  board.get_list(os.getenv('TODO_LIST_ID'))
         new_card = todo_list.add_card(name)
         if new_card is not None:
