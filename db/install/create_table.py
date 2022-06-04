@@ -36,7 +36,7 @@ def create_tables(params) -> bool:
         """
         CREATE TABLE tasks (
             task_id INT GENERATED ALWAYS AS IDENTITY,
-            card_id VARCHAR(100) NOT NULL,
+            card_id VARCHAR(100) NULL,
             description TEXT NULL,
             steps TEXT NULL,
             status BOOLEAN NOT NULL,
@@ -54,26 +54,17 @@ def create_tables(params) -> bool:
         )
     conn = None
     try:
-        # read the connection parameters
-        # connect to the PostgreSQL server
-        # TODO: add logging of starting connection
         conn = psycopg2.connect("host={host} user={user} password={password}".format(**params))
         cur = conn.cursor()
-        # create table one by one
         for command in commands:
             cur.execute(command)
-        # close communication with the PostgreSQL database server
         cur.close()
-        # commit the changes
         conn.commit()
         return True
     except (Exception, psycopg2.DatabaseError) as error:
-        # TODO: add logging of an error while connection
-        print(error)
         return False
     finally:
         if conn is not None:
-            # TODO: add logging about closing
             conn.close()
         
 

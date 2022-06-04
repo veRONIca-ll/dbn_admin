@@ -73,7 +73,6 @@ def _collect_main_deps() -> list:
 def insert_departments() -> bool:
     global connection_param
     try:
-        # TODO: add logging of starting connection
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         for dep in _collect_main_deps():
@@ -82,9 +81,7 @@ def insert_departments() -> bool:
             cursor.execute(to_)
         conn.commit()
         return True
-    except (Exception, psycopg2.DatabaseError) as error:
-        # TODO: add logging of an error while connection
-        print(error)
+    except (Exception, psycopg2.DatabaseError):
         return False
     finally:
         if conn is not None:

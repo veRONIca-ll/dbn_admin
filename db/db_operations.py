@@ -141,7 +141,7 @@ def update_user_fio(data: dict) -> bool:
         print(error)
         return False
 
-def update_user_admin(id) -> bool:
+def update_user_admin(id: int) -> bool:
     ''' Установка статуса admin пользователю '''
     global connection_param
     try:
@@ -157,7 +157,7 @@ def update_user_admin(id) -> bool:
         print(error)
         return False
 
-def update_user_department(user_id: int, dep: int) -> bool:
+def update_user_department(user_id: int, dep_id: int) -> bool:
     ''' Добавление ID отдела пользователю '''
     global connection_param
     try:
@@ -165,7 +165,7 @@ def update_user_department(user_id: int, dep: int) -> bool:
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("""UPDATE users SET department_id=%s \
-            WHERE user_id=%s""", (dep, user_id))
+            WHERE user_id=%s""", (dep_id, user_id))
         conn.commit()
         return True
     except (Exception, psycopg2.DatabaseError) as error:

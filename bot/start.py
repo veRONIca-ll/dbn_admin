@@ -13,7 +13,7 @@ from utils.helpers import send_list, split_into_fullname, pretty_output
 # Константы переходов
 STEP_FIO, SAVE_FIO, STEP_DEPS, SAVE_DEPS = range(4)
 STEP_ADMIN_FIO, SAVE_ADMIN_FIO = range(2)
-AKS_CATEGORY, ASK_DESCRIPTION, SEARCH_SOLUTIONS = range(4)
+AKS_CATEGORY, ASK_DESCRIPTION, SEARCH_SOLUTIONS = range(3)
 #
 user_info = {}
 
@@ -210,7 +210,7 @@ def get_category_problem(update: Update, context: CallbackContext):
     keyboard = []
     for value in categories.items():
         keyboard.append([InlineKeyboardButton(text=value[1], callback_data=value[0])])
-        context.bot.send_message(update.effective_chat.id, 'Выберите категорию Вашей проблемы:', reply_markup=InlineKeyboardMarkup(keyboard))
+    context.bot.send_message(update.effective_chat.id, 'Выберите категорию Вашей проблемы:', reply_markup=InlineKeyboardMarkup(keyboard))
     return ASK_DESCRIPTION
 
 def get_description_problem(update: Update, context: CallbackContext):
@@ -256,7 +256,8 @@ def unsuccess_reply(update: Update, context: CallbackContext):
     card_url = create_card(update.effective_chat.id, user_info[update.effective_chat.id], update.message.text)
     if card_url != '':
         context.bot.send_message(update.effective_chat.id,
-        'Заявка создана и уже рассматривается экспертами - ожидайте.')
+        'Заявка создана и уже рассматривается экспертами - ожидайте.',
+        reply_markup=ReplyKeyboardMarkup([[KeyboardButton('/start')]]))
         mailing_list_admin(card_url, update.effective_chat.id, context)
     else:
         context.bot.send_message(update.effective_chat.id,

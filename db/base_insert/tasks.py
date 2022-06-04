@@ -1,8 +1,7 @@
 import pandas as pd
+import os
 import psycopg2
 import psycopg2.extras
-import os
-
 
 params = {
         'host': os.getenv('DB_HOST'),
@@ -12,19 +11,18 @@ params = {
 
 connection_param = 'host={host} user={user} password={password}'.format(**params)
 
-def _parse_category():
-    file = pd.read_csv(os.getenv('PATH_TO_APP_FOLDER') + '/data/' + os.getenv('CATEGORIES_FILE'),
-        header=None)
-    return [v[0] for v in file.values]
+def _read_file():
+    return pd.read_csv(os.getenv('PATH_TO_APP_FOLDER') + '/data/' + 'tasks.csv', sep=';')
 
-def insert_categories() -> bool:
+def insert_tasks() -> bool:
     global connection_param
     try:
         conn = psycopg2.connect(connection_param)
         cursor = conn.cursor()
-        for category in _parse_category():
-            to_ = f"INSERT INTO categories (name) \
-                VALUES ('{category}')"
+        file = _read_file()
+        for i in file.shape[0]:
+            to_ = f"INSERT INTO tasks (description, steps, category_id, status) \
+                VALUES ('{file.description[i]}, {file.steps[i]}, {file.category_id[i]}, {True}')"
             cursor.execute(to_)
         conn.commit()
         return True
