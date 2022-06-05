@@ -1,9 +1,9 @@
 .env
-/logs
+logs/*
 .vscode/
 dbn_admin.session.sql
 */__pycache__/
 */*/__pycache__/
 *.sql
 .postgres_postgres2
-main.py
+data/*
