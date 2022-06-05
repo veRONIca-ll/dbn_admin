@@ -1,0 +1,11 @@
+os-sys==2.1.4
+pandas==1.4.2
+python-dotenv==0.20.0
+pyTelegramBotAPI==4.4.0
+psycopg2==2.9.3
+elasticsearch==8.2.2
+py-trello==0.18.0
+logging==0.4.9.6
+beautifulsoup4==4.11.1
+requests==2.27.1
+pgsync==2.2.1
